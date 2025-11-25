@@ -1,3 +1,8 @@
+let placingTower = false;
+let mouseX = 0;
+let mouseY = 0;
+let hoverTower = null;
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
