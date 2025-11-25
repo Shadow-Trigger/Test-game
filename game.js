@@ -22,9 +22,9 @@ let mouseY = 0;
 let hoverTower = null;
 
 // Currency
-let money = 200;
+let money = 300;
 const towerCost = 100;
-const enemyReward = 15;
+const enemyReward = 5;
 
 // Wave system
 let currentWave = 1;
