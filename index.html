@@ -1,17 +1,50 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Simple TD Game</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>TD Game</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      color: white;
+      font-family: Arial;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    #ui {
+      margin: 10px;
+    }
+
+    #placeTowerBtn {
+      padding: 10px 20px;
+      font-size: 16px;
+      background: #00aaff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #placeTowerBtn:hover {
+      background: #44cfff;
+    }
+
+    canvas {
+      background: #222;
+      border: 2px solid #444;
+    }
+  </style>
 </head>
-  <body>
-  <button id="placeTowerBtn">Place Tower</button><br><br>
-  <canvas id="gameCanvas" width="800" height="500"></canvas>
-  <script src="game.js"></script>
-</body>
+
 <body>
-  <canvas id="gameCanvas" width="800" height="500"></canvas>
+
+  <div id="ui">
+    <button id="placeTowerBtn">Place Tower</button>
+  </div>
+
+  <canvas id="gameCanvas" width="900" height="500"></canvas>
+
   <script src="game.js"></script>
 </body>
 </html>
