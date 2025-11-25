@@ -1,6 +1,7 @@
 // game.js
-import { spawnEnemy, updateEnemy, enemyTypes } from './enemySpawner.js';
+import { spawnEnemy, updateEnemy } from './enemySpawner.js';
 import { snapToGrid, isPathCell, drawTowers, updateTower } from './tower.js';
+import { addKillScore, subtractLeakScore, drawScore } from './highScore.js';
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
@@ -128,11 +129,8 @@ function draw(){
   ctx.fillText(`Wave: ${currentWave}`,10,55);
   ctx.fillStyle="orange";
   ctx.fillText(`Enemies alive: ${enemiesAlive}`,10,85);
-  if(enemiesAlive===0 && enemiesToSpawn===0 && waveCountdown>0){
-    ctx.fillStyle="yellow";
-    ctx.font="24px Arial";
-    ctx.fillText(`Next wave in: ${waveCountdown}`,10,115);
-  }
+
+  drawScore(ctx);
 }
 
 // Game loop
@@ -160,10 +158,10 @@ function gameLoop(){
   enemies.forEach(e=>updateEnemy(e,path));
   towers.forEach(t=>updateTower(t,enemies));
 
-  // Remove dead/escaped enemies
+  // Remove dead/escaped enemies & update score
   enemies = enemies.filter(e=>{
-    if(e.hp<=0){ money+=enemyReward; enemiesAlive--; return false; }
-    if(e.pathIndex>=path.length-1){ enemiesAlive--; return false; }
+    if(e.hp<=0){ money+=enemyReward; enemiesAlive--; addKillScore(1000); return false; }
+    if(e.pathIndex>=path.length-1){ enemiesAlive--; subtractLeakScore(10000); return false; }
     return true;
   });
   enemiesAlive = Math.max(enemiesAlive,0);
