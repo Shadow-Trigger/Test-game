@@ -21,15 +21,15 @@ let mouseY = 0;
 let hoverTower = null;
 
 // ==== CURRENCY SYSTEM ====
-let money = 50;
-const towerCost = 30;
-const enemyReward = 2;
+let money = 100;
+const towerCost = 20;
+const enemyReward = 8;
 
 // ==== WAVE SYSTEM ====
 let currentWave = 1;
 let waveIndex = 0;       // index in Fibonacci sequence
 let enemiesToSpawn = 0;  // enemies left to spawn in current wave
-let enemiesAlive = 0;    // enemies alive on canvas
+let enemiesAlive = 0;    // enemies currently alive on canvas
 let waveCountdown = 5;   // 5-second countdown between waves
 let lastTime = Date.now();
 
@@ -86,7 +86,7 @@ function spawnEnemy() {
     pathIndex: 0,
     hp: 50,
   });
-  enemiesAlive++;
+  enemiesAlive++; // increment only when enemy is actually spawned
 }
 
 function updateEnemy(enemy) {
@@ -206,7 +206,6 @@ function gameLoop() {
     } else {
       // Start next wave
       enemiesToSpawn = fib[waveIndex] || fib[fib.length - 1];
-      enemiesAlive = enemiesToSpawn;
       waveIndex++;
       currentWave++;
       waveCountdown = 5; // reset countdown for next wave
@@ -235,6 +234,9 @@ function gameLoop() {
     }
     return true;
   });
+
+  // Ensure counter never goes below 0
+  enemiesAlive = Math.max(enemiesAlive, 0);
 
   draw();
   requestAnimationFrame(gameLoop);
