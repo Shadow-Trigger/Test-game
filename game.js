@@ -15,17 +15,26 @@ const path = [
 ];
 
 // ==== TOWER PLACEMENT SYSTEM ====
-let placingTower = false;   // true when player clicked Place Tower
-let mouseX = 0;             // mouse position for preview
+let placingTower = false;
+let mouseX = 0;
 let mouseY = 0;
-let hoverTower = null;      // tower player is hovering over
+let hoverTower = null;
 
-// Button to start placement
+// ==== CURRENCY SYSTEM ====
+let money = 100;
+const towerCost = 20;
+const enemyReward = 8;
+
+// ==== ENEMY SPAWN COUNTDOWN ====
+let spawnCountdown = 5; // seconds
+let lastTime = Date.now();
+
+// ==== BUTTON HANDLER ====
 document.getElementById("placeTowerBtn").addEventListener("click", () => {
   placingTower = true;
 });
 
-// Track mouse for preview + hover
+// ==== MOUSE EVENTS ====
 canvas.addEventListener("mousemove", (e) => {
   const rect = canvas.getBoundingClientRect();
   mouseX = e.clientX - rect.left;
@@ -40,9 +49,12 @@ canvas.addEventListener("mousemove", (e) => {
   }
 });
 
-// Click to place ONLY if placingTower is true
 canvas.addEventListener("click", () => {
   if (!placingTower) return;
+  if (money < towerCost) {
+    alert("Not enough money!");
+    return;
+  }
 
   towers.push({
     x: mouseX,
@@ -51,10 +63,11 @@ canvas.addEventListener("click", () => {
     reload: 0,
   });
 
-  placingTower = false; // exit placement mode
+  money -= towerCost;
+  placingTower = false;
 });
 
-// ==== ENEMY SPAWNING ====
+// ==== ENEMY FUNCTIONS ====
 function spawnEnemy() {
   enemies.push({
     x: path[0].x,
@@ -106,6 +119,18 @@ function updateTower(tower) {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+  // MONEY DISPLAY
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.fillText(`Money: $${money}`, 10, 25);
+
+  // SPAWN COUNTDOWN DISPLAY
+  if (spawnCountdown > 0) {
+    ctx.fillStyle = "yellow";
+    ctx.font = "24px Arial";
+    ctx.fillText(`Enemies start in: ${spawnCountdown}`, 10, 55);
+  }
+
   // PATH
   ctx.strokeStyle = "gray";
   ctx.lineWidth = 8;
@@ -114,7 +139,7 @@ function draw() {
   for (let p of path) ctx.lineTo(p.x, p.y);
   ctx.stroke();
 
-  // ==== DRAW TOWERS + HOVER RANGE ====
+  // TOWERS + HOVER RANGE
   towers.forEach((t) => {
     // Hover range circle
     if (hoverTower === t) {
@@ -131,21 +156,19 @@ function draw() {
     ctx.fill();
   });
 
-  // ==== DRAW ENEMIES ====
+  // ENEMIES
   enemies.forEach((e) => {
     ctx.fillStyle = "red";
     ctx.fillRect(e.x - 10, e.y - 10, 20, 20);
   });
 
-  // ==== TOWER PLACEMENT PREVIEW ====
+  // PLACEMENT PREVIEW
   if (placingTower) {
-    // Range preview
     ctx.beginPath();
     ctx.arc(mouseX, mouseY, 120, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0, 255, 255, 0.15)";
     ctx.fill();
 
-    // Tower preview body
     ctx.beginPath();
     ctx.arc(mouseX, mouseY, 10, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0, 255, 255, 0.6)";
@@ -153,17 +176,30 @@ function draw() {
   }
 }
 
-// ==== MAIN GAME LOOP ====
+// ==== GAME LOOP ====
 function gameLoop() {
-  if (Math.random() < 0.02) spawnEnemy();
+  // Countdown before enemies spawn
+  if (spawnCountdown > 0) {
+    const now = Date.now();
+    if (now - lastTime >= 1000) {
+      spawnCountdown--;
+      lastTime = now;
+    }
+  } else {
+    if (Math.random() < 0.02) spawnEnemy();
+  }
 
   enemies.forEach(updateEnemy);
   towers.forEach(updateTower);
 
-  // Remove dead/escaped enemies
-  enemies = enemies.filter(
-    (e) => e.hp > 0 && e.pathIndex < path.length - 1
-  );
+  // Remove dead/escaped enemies + reward money
+  enemies = enemies.filter((e) => {
+    if (e.hp <= 0) {
+      money += enemyReward;
+      return false;
+    }
+    return e.pathIndex < path.length - 1;
+  });
 
   draw();
   requestAnimationFrame(gameLoop);
