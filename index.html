@@ -4,17 +4,20 @@
   <title>TD Game</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
 
-<div id="ui">
-  <button id="placeTowerBtn">Place Tower</button>
-</div>
+  <div id="game-container">
+    <canvas id="gameCanvas" width="900" height="500"></canvas>
 
-<canvas id="gameCanvas" width="900" height="500"></canvas>
+    <!-- UI under the canvas -->
+    <div id="ui">
+      <button id="circleTowerBtn">Circle Tower</button>
+      <div id="towerPrice">$100</div>
+    </div>
+  </div>
 
-<script type="module" src="enemySpawner.js"></script>
-<script type="module" src="tower.js"></script>
-<script type="module" src="game.js"></script>
-
+  <!-- JS Modules -->
+  <script type="module" src="game.js"></script>
 </body>
 </html>
