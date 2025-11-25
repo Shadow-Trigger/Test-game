@@ -1,38 +1,78 @@
-/* Make sure the canvas is visible and not covered */
+/* ==== BODY & PAGE ====
+Sets up background and centers content */
+body {
+  margin: 0;
+  background: #111;
+  color: white;
+  font-family: Arial, sans-serif;
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+}
+
+/* ==== GAME CONTAINER ====
+Holds canvas and UI below it */
 #game-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px; /* space between canvas and UI */
-  margin-top: 20px;
 }
 
-/* Canvas styling */
+/* ==== CANVAS ====
+Border and background */
 #gameCanvas {
-  border: 3px solid white;
-  background: #111;
+  width: 900px;
+  height: 500px;
+  border: 3px solid #444;
+  background: #222;
 }
 
-/* UI BELOW the canvas */
+/* ==== UI BELOW CANVAS ====
+Button and price stack vertically */
 #ui {
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 6px; /* space between button and price */
 }
 
-/* Big tower button */
+/* ==== TOWER BUTTON ====
+Big button with hover animation */
 #circleTowerBtn {
   font-size: 28px;
   padding: 16px 50px;
+  border-radius: 14px;
   background: #00ffaa;
   border: none;
-  border-radius: 14px;
   cursor: pointer;
-  margin-bottom: 6px;
+  font-weight: bold;
+  color: black;
+  transition: 0.15s;
 }
 
-/* Tower price text */
+#circleTowerBtn:hover {
+  background: #33ffcc;
+  transform: scale(1.05);
+}
+
+/* ==== TOWER PRICE ====
+Text below button */
 #towerPrice {
   font-size: 22px;
-  color: white;
+  color: #0ff;
+  font-weight: bold;
+}
+
+/* ==== GRID (if using stroke on canvas) ====
+Optional visual aid for debugging grid */
+.grid-cell {
+  stroke: #444;
+  fill: transparent;
+}
+
+/* ==== GENERAL UI TEXT ====
+Money, wave, enemies alive, score drawn on canvas */
+canvas {
+  font-family: Arial, sans-serif;
 }
