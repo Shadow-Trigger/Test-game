@@ -22,12 +22,22 @@ let hoverTower = null;
 
 // ==== CURRENCY SYSTEM ====
 let money = 50;
-const towerCost = 25;
-const enemyReward = 3;
+const towerCost = 30;
+const enemyReward = 2;
 
-// ==== ENEMY SPAWN COUNTDOWN ====
-let spawnCountdown = 5; // seconds
+// ==== WAVE SYSTEM ====
+let currentWave = 1;
+let waveIndex = 0;       // index in Fibonacci sequence
+let enemiesToSpawn = 0;  // enemies left to spawn in current wave
+let enemiesAlive = 0;    // enemies alive on canvas
+let waveCountdown = 5;   // 5-second countdown between waves
 let lastTime = Date.now();
+
+// Precompute Fibonacci sequence for waves
+const fib = [1, 1];
+for (let i = 2; i < 15; i++) {
+  fib[i] = fib[i - 1] + fib[i - 2];
+}
 
 // ==== BUTTON HANDLER ====
 document.getElementById("placeTowerBtn").addEventListener("click", () => {
@@ -76,6 +86,7 @@ function spawnEnemy() {
     pathIndex: 0,
     hp: 50,
   });
+  enemiesAlive++;
 }
 
 function updateEnemy(enemy) {
@@ -124,11 +135,18 @@ function draw() {
   ctx.font = "20px Arial";
   ctx.fillText(`Money: $${money}`, 10, 25);
 
-  // SPAWN COUNTDOWN DISPLAY
-  if (spawnCountdown > 0) {
+  // CURRENT WAVE & ENEMIES ALIVE
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.fillText(`Wave: ${currentWave}`, 10, 55);
+  ctx.fillStyle = "orange";
+  ctx.fillText(`Enemies alive: ${enemiesAlive}`, 10, 85);
+
+  // WAVE COUNTDOWN DISPLAY (only when no enemies left)
+  if (enemiesAlive === 0 && enemiesToSpawn === 0 && waveCountdown > 0) {
     ctx.fillStyle = "yellow";
     ctx.font = "24px Arial";
-    ctx.fillText(`Enemies start in: ${spawnCountdown}`, 10, 55);
+    ctx.fillText(`Next wave in: ${waveCountdown}`, 10, 115);
   }
 
   // PATH
@@ -141,7 +159,6 @@ function draw() {
 
   // TOWERS + HOVER RANGE
   towers.forEach((t) => {
-    // Hover range circle
     if (hoverTower === t) {
       ctx.beginPath();
       ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
@@ -149,7 +166,6 @@ function draw() {
       ctx.fill();
     }
 
-    // Tower body
     ctx.beginPath();
     ctx.arc(t.x, t.y, 10, 0, Math.PI * 2);
     ctx.fillStyle = "cyan";
@@ -178,27 +194,46 @@ function draw() {
 
 // ==== GAME LOOP ====
 function gameLoop() {
-  // Countdown before enemies spawn
-  if (spawnCountdown > 0) {
-    const now = Date.now();
-    if (now - lastTime >= 1000) {
-      spawnCountdown--;
-      lastTime = now;
+  const now = Date.now();
+
+  // WAVE LOGIC
+  if (enemiesToSpawn === 0 && enemiesAlive === 0) {
+    if (waveCountdown > 0) {
+      if (now - lastTime >= 1000) {
+        waveCountdown--;
+        lastTime = now;
+      }
+    } else {
+      // Start next wave
+      enemiesToSpawn = fib[waveIndex] || fib[fib.length - 1];
+      enemiesAlive = enemiesToSpawn;
+      waveIndex++;
+      currentWave++;
+      waveCountdown = 5; // reset countdown for next wave
     }
   } else {
-    if (Math.random() < 0.02) spawnEnemy();
+    // Spawn enemies gradually
+    if (enemiesToSpawn > 0 && Math.random() < 0.02) {
+      spawnEnemy();
+      enemiesToSpawn--;
+    }
   }
 
   enemies.forEach(updateEnemy);
   towers.forEach(updateTower);
 
-  // Remove dead/escaped enemies + reward money
+  // Remove dead or escaped enemies
   enemies = enemies.filter((e) => {
     if (e.hp <= 0) {
       money += enemyReward;
+      enemiesAlive--;
       return false;
     }
-    return e.pathIndex < path.length - 1;
+    if (e.pathIndex >= path.length - 1) {
+      enemiesAlive--;
+      return false;
+    }
+    return true;
   });
 
   draw();
