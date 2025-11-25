@@ -26,7 +26,7 @@ const towerCost = 30;
 const enemyReward = 3;
 
 // ==== WAVE SYSTEM ====
-let currentWave = 1;
+let currentWave = 0;
 let waveIndex = 0;       // index in Fibonacci sequence
 let enemiesToSpawn = 0;  // enemies left to spawn in current wave
 let enemiesAlive = 0;    // enemies currently alive on canvas
