@@ -80,13 +80,20 @@ function draw() {
   for (let p of path) ctx.lineTo(p.x, p.y);
   ctx.stroke();
 
-  // towers
+// towers + range indicators
+towers.forEach(t => {
+  // Range circle
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0, 255, 255, 0.15)"; // light transparent cyan
+  ctx.fill();
+
+  // Tower body
+  ctx.beginPath();
+  ctx.arc(t.x, t.y, 10, 0, Math.PI * 2);
   ctx.fillStyle = "cyan";
-  towers.forEach(t => {
-    ctx.beginPath();
-    ctx.arc(t.x, t.y, 10, 0, Math.PI * 2);
-    ctx.fill();
-  });
+  ctx.fill();
+});
 
   // enemies
   enemies.forEach(e => {
