@@ -21,9 +21,9 @@ let mouseY = 0;
 let hoverTower = null;
 
 // ==== CURRENCY SYSTEM ====
-let money = 100;
-const towerCost = 20;
-const enemyReward = 8;
+let money = 50;
+const towerCost = 25;
+const enemyReward = 3;
 
 // ==== ENEMY SPAWN COUNTDOWN ====
 let spawnCountdown = 5; // seconds
