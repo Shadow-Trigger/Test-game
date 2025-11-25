@@ -49,7 +49,7 @@ const fib = [1,1];
 for(let i=2;i<15;i++) fib[i]=fib[i-1]+fib[i-2];
 
 // Button
-document.getElementById("placeTowerBtn").addEventListener("click",()=>{ placingTower=true; });
+document.getElementById("circleTowerBtn").addEventListener("click",()=>{ placingTower=true; });
 
 // Mouse events
 canvas.addEventListener("mousemove", e=>{
