@@ -1,5 +1,5 @@
 // game.js
-import { spawnEnemy, updateEnemy } from './enemySpawner.js';
+import { spawnEnemyByWave, updateEnemy } from './enemySpawner.js';
 import { snapToGrid, isPathCell, drawTowers, updateTower } from './tower.js';
 import { addKillScore, subtractLeakScore, drawScore } from './highScore.js';
 
@@ -165,11 +165,7 @@ function gameLoop() {
       waveCountdown = 5;
     }
   } else if (enemiesToSpawn > 0 && Math.random() < 0.02) {
-    let type;
-    if (currentWave <= 5) type = "normal";         // RED ONLY
-    else if (currentWave === 6) type = "fast";     // PURPLE ONLY
-    else type = Math.random() < 0.65 ? "normal" : "fast"; // MIX
-    enemiesAlive = spawnEnemy(type, enemies, enemiesAlive, path);
+    enemiesAlive = spawnEnemyByWave(currentWave, enemies, enemiesAlive, path);
     enemiesToSpawn--;
   }
 
@@ -182,6 +178,7 @@ function gameLoop() {
     if (shotTarget) bullets.push({ x1: t.x, y1: t.y, x2: shotTarget.x, y2: shotTarget.y, life: 8 });
   });
 
+  // UPDATE BULLETS
   bullets = bullets.filter(b => { b.life--; return b.life > 0; });
 
   // CLEANUP ENEMIES
