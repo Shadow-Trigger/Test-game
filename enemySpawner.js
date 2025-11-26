@@ -3,11 +3,16 @@
 // Enemy types
 export const enemyTypes = {
   normal: { hp: 40, speed: 1, color: "red" },
-  fast: { hp: 50, speed: 2, color: "purple" } // spawns after wave 3
+  fast: { hp: 50, speed: 2, color: "purple" }
 };
 
 // Spawn enemy and increment enemiesAlive
-export function spawnEnemy(type = "normal", enemies, enemiesAlive, path) {
+export function spawnEnemyByWave(currentWave, enemies, enemiesAlive, path) {
+  let type;
+  if (currentWave <= 5) type = "normal";        // RED only
+  else if (currentWave === 6) type = "fast";    // PURPLE only
+  else type = Math.random() < 0.65 ? "normal" : "fast"; // MIX from wave 7+
+
   const eType = enemyTypes[type];
   enemies.push({
     x: path[0].x,
@@ -17,7 +22,8 @@ export function spawnEnemy(type = "normal", enemies, enemiesAlive, path) {
     hp: eType.hp,
     color: eType.color
   });
-  return enemiesAlive + 1; // return new count
+
+  return enemiesAlive + 1; // return updated count
 }
 
 // Update enemy position
@@ -30,5 +36,5 @@ export function updateEnemy(enemy, path) {
   const dist = Math.hypot(dx, dy);
 
   if (dist < enemy.speed) enemy.pathIndex++;
-  else { enemy.x += (dx/dist) * enemy.speed; enemy.y += (dy/dist) * enemy.speed; }
+  else { enemy.x += (dx / dist) * enemy.speed; enemy.y += (dy / dist) * enemy.speed; }
 }
