@@ -28,7 +28,7 @@ const towerCost = 100;
 const enemyReward = 10;
 
 // Wave system
-let currentWave = 1;
+let currentWave = 0;
 let waveIndex = 0;
 let enemiesToSpawn = 0;
 let enemiesAlive = 0;
@@ -118,8 +118,8 @@ function draw() {
 
   // BULLETS (fade out)
   bullets.forEach(b => {
-    ctx.strokeStyle = `rgba(255,255,0,${b.life / 15})`;
-    ctx.lineWidth = 2;
+    ctx.strokeStyle = `rgba(255,255,0,${b.life / 30})`;
+    ctx.lineWidth = 8;
     ctx.beginPath();
     ctx.moveTo(b.x1, b.y1);
     ctx.lineTo(b.x2, b.y2);
