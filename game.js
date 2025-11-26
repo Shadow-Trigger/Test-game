@@ -28,7 +28,7 @@ const towerCost = 100;
 const enemyReward = 10;
 
 // Wave system
-let currentWave = 0;
+let currentWave = 1;
 let waveIndex = 0;
 let enemiesToSpawn = 0;
 let enemiesAlive = 0;
@@ -116,9 +116,9 @@ function draw() {
     ctx.fillRect(e.x - 10, e.y - 10, 20, 20);
   });
 
-  // BULLETS
+  // BULLETS (fade out)
   bullets.forEach(b => {
-    ctx.strokeStyle = `rgba(255,255,0,${b.life / 8})`;
+    ctx.strokeStyle = `rgba(255,255,0,${b.life / 15})`;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(b.x1, b.y1);
@@ -126,7 +126,7 @@ function draw() {
     ctx.stroke();
   });
 
-  // TOWER PREVIEW
+  // TOWER PLACEMENT PREVIEW
   if (placingTower) {
     const snap = snapToGrid(mouseX, mouseY, gridSize);
     ctx.beginPath();
@@ -175,7 +175,7 @@ function gameLoop() {
   // UPDATE TOWERS + BULLETS
   towers.forEach(t => {
     const shotTarget = updateTower(t, enemies);
-    if (shotTarget) bullets.push({ x1: t.x, y1: t.y, x2: shotTarget.x, y2: shotTarget.y, life: 8 });
+    if (shotTarget) bullets.push({ x1: t.x, y1: t.y, x2: shotTarget.x, y2: shotTarget.y, life: 15 });
   });
 
   // UPDATE BULLETS
