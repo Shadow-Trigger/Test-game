@@ -1,3 +1,4 @@
+// game.js
 import { spawnEnemyByWave, updateEnemy } from './enemySpawner.js';
 import { snapToGrid, isPathCell, drawTowers, updateTower } from './tower.js';
 import { addKillScore, subtractLeakScore, drawScore } from './highScore.js';
@@ -5,10 +6,12 @@ import { addKillScore, subtractLeakScore, drawScore } from './highScore.js';
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+// ==== GRID SETTINGS ====
 const gridSize = 60;
 const cols = Math.floor(canvas.width / gridSize);
 const rows = Math.floor(canvas.height / gridSize);
 
+// ==== GAME DATA ====
 let enemies = [];
 let towers = [];
 let bullets = [];
@@ -19,10 +22,12 @@ let mouseX = 0;
 let mouseY = 0;
 let hoverTower = null;
 
+// Currency
 let money = 200;
 const towerCost = 100;
 const enemyReward = 10;
 
+// Wave system
 let currentWave = 1;
 let waveIndex = 0;
 let enemiesToSpawn = 0;
@@ -30,6 +35,7 @@ let enemiesAlive = 0;
 let waveCountdown = 5;
 let lastTime = Date.now();
 
+// ==== PATH THROUGH GRID ====
 const path = [
   { x: 0, y: gridSize * 4 + gridSize / 2 },
   { x: gridSize * 5 + gridSize / 2, y: gridSize * 4 + gridSize / 2 },
@@ -39,31 +45,40 @@ const path = [
   { x: gridSize * 14 + gridSize / 2, y: gridSize * 6 + gridSize / 2 }
 ];
 
+// ==== FIBONACCI WAVE PATTERN ====
 const fib = [1, 1];
 for (let i = 2; i < 20; i++) fib[i] = fib[i - 1] + fib[i - 2];
 
-// BUTTON
-document.getElementById("circleTowerBtn").addEventListener("click", () => { placingTower = true; });
+// ==== BUTTON HANDLER ====
+document.getElementById("circleTowerBtn").addEventListener("click", () => {
+  placingTower = true;
+});
 
-// MOUSE
+// ==== MOUSE EVENTS ====
 canvas.addEventListener("mousemove", e => {
   const rect = canvas.getBoundingClientRect();
   mouseX = e.clientX - rect.left;
   mouseY = e.clientY - rect.top;
 
   hoverTower = null;
-  for (let t of towers) if (Math.hypot(mouseX-t.x, mouseY-t.y)<10) hoverTower=t;
+  for (let t of towers) {
+    if (Math.hypot(mouseX - t.x, mouseY - t.y) < 10) {
+      hoverTower = t;
+      break;
+    }
+  }
 });
 
 canvas.addEventListener("click", () => {
-  if(!placingTower) return;
-  if(money < towerCost){ alert("Not enough money!"); return; }
+  if (!placingTower) return;
+  if (money < towerCost) { alert("Not enough money!"); return; }
 
   const snap = snapToGrid(mouseX, mouseY, gridSize);
   const key = `${snap.col},${snap.row}`;
 
-  if(occupiedCells.has(key) || isPathCell(snap.col, snap.row, path, gridSize)){
-    alert("Can't place here!"); return;
+  if (occupiedCells.has(key) || isPathCell(snap.col, snap.row, path, gridSize)) {
+    alert("Can't place here!");
+    return;
   }
 
   towers.push({ x: snap.x, y: snap.y, range: 120, reload: 0, col: snap.col, row: snap.row });
@@ -72,101 +87,125 @@ canvas.addEventListener("click", () => {
   placingTower = false;
 });
 
-// DRAW
-function draw() {
-  ctx.clearRect(0,0,canvas.width,canvas.height);
+// ==== DRAW FUNCTIONS ====
+function drawGrid() {
+  ctx.strokeStyle = "#444";
+  for (let c = 0; c < cols; c++) {
+    for (let r = 0; r < rows; r++) {
+      ctx.strokeRect(c * gridSize, r * gridSize, gridSize, gridSize);
+    }
+  }
+}
 
-  // Grid
-  ctx.strokeStyle="#444";
-  for(let c=0;c<cols;c++) for(let r=0;r<rows;r++) ctx.strokeRect(c*gridSize,r*gridSize,gridSize,gridSize);
-
-  // Path
-  ctx.strokeStyle="gray";
-  ctx.lineWidth=8;
+function drawPath() {
+  ctx.strokeStyle = "gray";
+  ctx.lineWidth = 8;
   ctx.beginPath();
-  ctx.moveTo(path[0].x,path[0].y);
-  for(let p of path) ctx.lineTo(p.x,p.y);
+  ctx.moveTo(path[0].x, path[0].y);
+  for (let p of path) ctx.lineTo(p.x, p.y);
   ctx.stroke();
+}
 
-  drawTowers(towers, hoverTower, ctx);
-
-  enemies.forEach(e => { ctx.fillStyle=e.color; ctx.fillRect(e.x-10,e.y-10,20,20); });
-
-  // BULLETS
+function drawBullets() {
   bullets.forEach(b => {
-    ctx.strokeStyle=`rgba(255,255,0,${b.life/30})`;
-    ctx.lineWidth=2;
+    ctx.strokeStyle = `rgba(255,255,0,${b.life/30})`;
+    ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(b.x1,b.y1);
-    ctx.lineTo(b.x2,b.y2);
+    ctx.moveTo(b.x1, b.y1);
+    ctx.lineTo(b.x2, b.y2);
     ctx.stroke();
   });
+}
 
-  // Tower preview
-  if(placingTower){
-    const snap = snapToGrid(mouseX, mouseY, gridSize);
-    ctx.beginPath();
-    ctx.arc(snap.x,snap.y,120,0,Math.PI*2);
-    ctx.fillStyle="rgba(0,255,255,0.15)";
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(snap.x,snap.y,10,0,Math.PI*2);
-    ctx.fillStyle="rgba(0,255,255,0.6)";
-    ctx.fill();
-  }
-
-  // UI
-  ctx.fillStyle="white";
-  ctx.font="20px Arial";
-  ctx.fillText(`Money: $${money}`,10,25);
-  ctx.fillText(`Wave: ${currentWave}`,10,55);
-  ctx.fillStyle="orange";
-  ctx.fillText(`Enemies alive: ${enemiesAlive}`,10,85);
-
+function drawUI() {
+  ctx.fillStyle = "white";
+  ctx.font = "20px Arial";
+  ctx.fillText(`Money: $${money}`, 10, 25);
+  ctx.fillText(`Wave: ${currentWave}`, 10, 55);
+  ctx.fillStyle = "orange";
+  ctx.fillText(`Enemies alive: ${enemiesAlive}`, 10, 85);
   drawScore(ctx);
 }
 
-// GAME LOOP
-function gameLoop(){
+function draw() {
+  // Fading background for bullet trails
+  ctx.fillStyle = "rgba(17,17,17,0.3)"; // semi-transparent
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  drawGrid();
+  drawPath();
+  drawTowers(towers, hoverTower, ctx);
+  drawEnemies();
+  drawBullets();
+  drawTowerPreview();
+  drawUI();
+}
+
+function drawEnemies() {
+  enemies.forEach(e => {
+    ctx.fillStyle = e.color;
+    ctx.fillRect(e.x - 10, e.y - 10, 20, 20);
+  });
+}
+
+function drawTowerPreview() {
+  if (!placingTower) return;
+  const snap = snapToGrid(mouseX, mouseY, gridSize);
+
+  ctx.beginPath();
+  ctx.arc(snap.x, snap.y, 120, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,255,255,0.15)";
+  ctx.fill();
+
+  ctx.beginPath();
+  ctx.arc(snap.x, snap.y, 10, 0, Math.PI * 2);
+  ctx.fillStyle = "rgba(0,255,255,0.6)";
+  ctx.fill();
+}
+
+// ==== GAME LOOP ====
+function gameLoop() {
   const now = Date.now();
 
-  // Wave spawn
-  if(enemiesToSpawn===0 && enemiesAlive===0){
-    if(waveCountdown>0){
-      if(now-lastTime>=1000){ waveCountdown--; lastTime=now; }
+  // Wave spawning
+  if (enemiesToSpawn === 0 && enemiesAlive === 0) {
+    if (waveCountdown > 0) {
+      if (now - lastTime >= 1000) { waveCountdown--; lastTime = now; }
     } else {
-      enemiesToSpawn = fib[waveIndex] || fib[fib.length-1];
+      enemiesToSpawn = fib[waveIndex] || fib[fib.length - 1];
       waveIndex++;
       currentWave++;
       waveCountdown = 5;
     }
-  } else if(enemiesToSpawn>0 && Math.random()<0.02){
-    enemiesAlive = spawnEnemyByWave(currentWave,enemies,enemiesAlive,path);
+  } else if (enemiesToSpawn > 0 && Math.random() < 0.02) {
+    enemiesAlive = spawnEnemyByWave(currentWave, enemies, enemiesAlive, path);
     enemiesToSpawn--;
   }
 
   // Update enemies
-  enemies.forEach(e=>updateEnemy(e,path));
+  enemies.forEach(e => updateEnemy(e, path));
 
-  // Update towers & spawn bullets
-  towers.forEach(t=>{
-    const target = updateTower(t,enemies);
-    if(target){
-      bullets.push({ x1:t.x, y1:t.y, x2:target.x, y2:target.y, life:30 });
-    }
+  // Update towers and spawn bullets
+  towers.forEach(t => {
+    const target = updateTower(t, enemies);
+    if (target) bullets.push({
+      x1: t.x, y1: t.y,
+      x2: target.x, y2: target.y,
+      life: 30 // fade over frames
+    });
   });
 
   // Update bullets
-  bullets = bullets.filter(b=>{ b.life--; return b.life>0; });
+  bullets = bullets.filter(b => { b.life--; return b.life > 0; });
 
-  // Cleanup enemies
-  enemies = enemies.filter(e=>{
-    if(e.hp<=0){ money+=enemyReward; enemiesAlive--; addKillScore(1000); return false; }
-    if(e.pathIndex>=path.length-1){ enemiesAlive--; subtractLeakScore(10000); return false; }
+  // Cleanup enemies & score
+  enemies = enemies.filter(e => {
+    if (e.hp <= 0) { money += enemyReward; enemiesAlive--; addKillScore(1000); return false; }
+    if (e.pathIndex >= path.length - 1) { enemiesAlive--; subtractLeakScore(10000); return false; }
     return true;
   });
 
-  enemiesAlive = Math.max(enemiesAlive,0);
+  enemiesAlive = Math.max(enemiesAlive, 0);
 
   draw();
   requestAnimationFrame(gameLoop);
