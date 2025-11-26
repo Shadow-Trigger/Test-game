@@ -2,8 +2,8 @@
 
 // Enemy types
 export const enemyTypes = {
-  normal: { hp: 40, speed: 2, color: "red" },
-  fast: { hp: 50, speed: 5, color: "purple" }
+  normal: { hp: 50, speed: 1.75, color: "red" },
+  fast: { hp: 30, speed: 5, color: "purple" }
 };
 
 // Spawn enemy and increment enemiesAlive
