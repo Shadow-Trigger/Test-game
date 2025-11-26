@@ -60,6 +60,7 @@ canvas.addEventListener("mousemove", e => {
   mouseX = e.clientX - rect.left;
   mouseY = e.clientY - rect.top;
 
+  // Tower hover detection
   hoverTower = null;
   for (let t of towers) {
     if (Math.hypot(mouseX - t.x, mouseY - t.y) < 10) {
@@ -87,37 +88,62 @@ canvas.addEventListener("click", () => {
   placingTower = false;
 });
 
-// ==== DRAW FUNCTIONS ====
-function drawGrid() {
-  ctx.strokeStyle = "#444";
-  for (let c = 0; c < cols; c++) {
-    for (let r = 0; r < rows; r++) {
-      ctx.strokeRect(c * gridSize, r * gridSize, gridSize, gridSize);
-    }
-  }
-}
+// ==== DRAW EVERYTHING ====
+function draw() {
+  // === Clear background first ===
+  ctx.fillStyle = "#222";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-function drawPath() {
+  // === Draw Path ===
   ctx.strokeStyle = "gray";
   ctx.lineWidth = 8;
   ctx.beginPath();
   ctx.moveTo(path[0].x, path[0].y);
   for (let p of path) ctx.lineTo(p.x, p.y);
   ctx.stroke();
-}
 
-function drawBullets() {
+  // === Draw Enemies ===
+  enemies.forEach(e => {
+    ctx.fillStyle = e.color;
+    ctx.fillRect(e.x - 10, e.y - 10, 20, 20);
+  });
+
+  // === Draw Bullets ===
   bullets.forEach(b => {
-    ctx.strokeStyle = `rgba(255,255,0,${b.life/30})`;
+    ctx.strokeStyle = `rgba(255,255,0,${b.life / 30})`;
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.moveTo(b.x1, b.y1);
     ctx.lineTo(b.x2, b.y2);
     ctx.stroke();
   });
-}
 
-function drawUI() {
+  // === Draw Towers ===
+  drawTowers(towers, hoverTower, ctx);
+
+  // === Tower placement preview ===
+  if (placingTower) {
+    const snap = snapToGrid(mouseX, mouseY, gridSize);
+    ctx.beginPath();
+    ctx.arc(snap.x, snap.y, 120, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(0,255,255,0.15)";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(snap.x, snap.y, 10, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(0,255,255,0.6)";
+    ctx.fill();
+  }
+
+  // === Draw grid last to prevent flicker ===
+  ctx.strokeStyle = "#444";
+  ctx.lineWidth = 2;
+  for (let c = 0; c < cols; c++) {
+    for (let r = 0; r < rows; r++) {
+      ctx.strokeRect(c * gridSize, r * gridSize, gridSize, gridSize);
+    }
+  }
+
+  // === UI ===
   ctx.fillStyle = "white";
   ctx.font = "20px Arial";
   ctx.fillText(`Money: $${money}`, 10, 25);
@@ -127,50 +153,17 @@ function drawUI() {
   drawScore(ctx);
 }
 
-function draw() {
-  // Fading background for bullet trails
-  ctx.fillStyle = "rgba(17,17,17,0.3)"; // semi-transparent
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  drawGrid();
-  drawPath();
-  drawTowers(towers, hoverTower, ctx);
-  drawEnemies();
-  drawBullets();
-  drawTowerPreview();
-  drawUI();
-}
-
-function drawEnemies() {
-  enemies.forEach(e => {
-    ctx.fillStyle = e.color;
-    ctx.fillRect(e.x - 10, e.y - 10, 20, 20);
-  });
-}
-
-function drawTowerPreview() {
-  if (!placingTower) return;
-  const snap = snapToGrid(mouseX, mouseY, gridSize);
-
-  ctx.beginPath();
-  ctx.arc(snap.x, snap.y, 120, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0,255,255,0.15)";
-  ctx.fill();
-
-  ctx.beginPath();
-  ctx.arc(snap.x, snap.y, 10, 0, Math.PI * 2);
-  ctx.fillStyle = "rgba(0,255,255,0.6)";
-  ctx.fill();
-}
-
 // ==== GAME LOOP ====
 function gameLoop() {
   const now = Date.now();
 
-  // Wave spawning
+  // ==== Wave spawning ====
   if (enemiesToSpawn === 0 && enemiesAlive === 0) {
     if (waveCountdown > 0) {
-      if (now - lastTime >= 1000) { waveCountdown--; lastTime = now; }
+      if (now - lastTime >= 1000) {
+        waveCountdown--;
+        lastTime = now;
+      }
     } else {
       enemiesToSpawn = fib[waveIndex] || fib[fib.length - 1];
       waveIndex++;
@@ -182,23 +175,27 @@ function gameLoop() {
     enemiesToSpawn--;
   }
 
-  // Update enemies
+  // === Update enemies ===
   enemies.forEach(e => updateEnemy(e, path));
 
-  // Update towers and spawn bullets
+  // === Update towers + spawn bullets ===
   towers.forEach(t => {
-    const target = updateTower(t, enemies);
-    if (target) bullets.push({
-      x1: t.x, y1: t.y,
-      x2: target.x, y2: target.y,
-      life: 30 // fade over frames
-    });
+    const shotTarget = updateTower(t, enemies);
+    if (shotTarget) {
+      bullets.push({
+        x1: t.x,
+        y1: t.y,
+        x2: shotTarget.x,
+        y2: shotTarget.y,
+        life: 30
+      });
+    }
   });
 
-  // Update bullets
+  // === Update bullets ===
   bullets = bullets.filter(b => { b.life--; return b.life > 0; });
 
-  // Cleanup enemies & score
+  // === Cleanup enemies ===
   enemies = enemies.filter(e => {
     if (e.hp <= 0) { money += enemyReward; enemiesAlive--; addKillScore(1000); return false; }
     if (e.pathIndex >= path.length - 1) { enemiesAlive--; subtractLeakScore(10000); return false; }
