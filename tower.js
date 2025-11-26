@@ -1,5 +1,3 @@
-// tower.js
-
 // Snap mouse to grid
 export function snapToGrid(x, y, gridSize) {
   const col = Math.floor(x / gridSize);
@@ -40,7 +38,7 @@ export function drawTowers(towers, hoverTower, ctx) {
   });
 }
 
-// Update tower logic
+// Update tower logic and return target if shooting
 export function updateTower(tower, enemies) {
   tower.reload--;
   let target=null, bestDist=Infinity;
@@ -48,5 +46,10 @@ export function updateTower(tower, enemies) {
     const d = Math.hypot(e.x - tower.x, e.y - tower.y);
     if(d < tower.range && d < bestDist){ bestDist=d; target=e; }
   }
-  if(target && tower.reload<=0){ target.hp -=10; tower.reload=30; }
+  if(target && tower.reload<=0){
+    target.hp -= 10;
+    tower.reload = 30;
+    return target; // <-- crucial fix
+  }
+  return null;
 }
