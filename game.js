@@ -24,7 +24,7 @@ let mouseY = 0;
 let hoverTower = null;
 
 // Currency
-let money = 300;
+let money = 200;
 const towerCost = 100;
 const enemyReward = 10;
 
