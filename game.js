@@ -87,7 +87,7 @@ canvas.addEventListener("click", () => {
   placingTower = false;
 });
 
-// ==== DRAW FUNCTION ====
+// ==== DRAW EVERYTHING ====
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -187,8 +187,10 @@ function gameLoop() {
     if (e.pathIndex >= path.length - 1) { enemiesAlive--; subtractLeakScore(10000); return false; }
     return true;
   });
+
   enemiesAlive = Math.max(enemiesAlive, 0);
 
+  // DRAW EVERYTHING
   draw();
   requestAnimationFrame(gameLoop);
 }
