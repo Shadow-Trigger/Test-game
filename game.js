@@ -14,8 +14,7 @@ const rows = Math.floor(canvas.height / gridSize);
 // ==== GAME DATA ====
 let enemies = [];
 let towers = [];
-let bullets = [];  // <<---- BULLET TRAILS
-
+let bullets = [];
 let occupiedCells = new Set();
 
 let placingTower = false;
@@ -39,21 +38,16 @@ let lastTime = Date.now();
 // ==== PATH THROUGH GRID ====
 const path = [
   { x: 0, y: gridSize * 4 + gridSize / 2 },
-
   { x: gridSize * 5 + gridSize / 2, y: gridSize * 4 + gridSize / 2 },
   { x: gridSize * 5 + gridSize / 2, y: gridSize * 2 + gridSize / 2 },
-
   { x: gridSize * 10 + gridSize / 2, y: gridSize * 2 + gridSize / 2 },
   { x: gridSize * 10 + gridSize / 2, y: gridSize * 6 + gridSize / 2 },
-
   { x: gridSize * 14 + gridSize / 2, y: gridSize * 6 + gridSize / 2 }
 ];
 
 // ==== FIBONACCI WAVE PATTERN ====
 const fib = [1, 1];
-for (let i = 2; i < 20; i++) {
-  fib[i] = fib[i - 1] + fib[i - 2];
-}
+for (let i = 2; i < 20; i++) fib[i] = fib[i - 1] + fib[i - 2];
 
 // ==== BUTTON HANDLER ====
 document.getElementById("circleTowerBtn").addEventListener("click", () => {
@@ -66,7 +60,6 @@ canvas.addEventListener("mousemove", e => {
   mouseX = e.clientX - rect.left;
   mouseY = e.clientY - rect.top;
 
-  // tower hover detection
   hoverTower = null;
   for (let t of towers) {
     if (Math.hypot(mouseX - t.x, mouseY - t.y) < 10) {
@@ -78,10 +71,7 @@ canvas.addEventListener("mousemove", e => {
 
 canvas.addEventListener("click", () => {
   if (!placingTower) return;
-  if (money < towerCost) {
-    alert("Not enough money!");
-    return;
-  }
+  if (money < towerCost) { alert("Not enough money!"); return; }
 
   const snap = snapToGrid(mouseX, mouseY, gridSize);
   const key = `${snap.col},${snap.row}`;
@@ -91,21 +81,13 @@ canvas.addEventListener("click", () => {
     return;
   }
 
-  towers.push({
-    x: snap.x,
-    y: snap.y,
-    range: 120,
-    reload: 0,
-    col: snap.col,
-    row: snap.row
-  });
-
+  towers.push({ x: snap.x, y: snap.y, range: 120, reload: 0, col: snap.col, row: snap.row });
   money -= towerCost;
   occupiedCells.add(key);
   placingTower = false;
 });
 
-// ==== DRAW EVERYTHING ====
+// ==== DRAW FUNCTION ====
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -134,7 +116,7 @@ function draw() {
     ctx.fillRect(e.x - 10, e.y - 10, 20, 20);
   });
 
-  // ==== BULLET TRAILS ====
+  // BULLETS
   bullets.forEach(b => {
     ctx.strokeStyle = `rgba(255,255,0,${b.life / 8})`;
     ctx.lineWidth = 2;
@@ -144,31 +126,27 @@ function draw() {
     ctx.stroke();
   });
 
-  // TOWER PLACEMENT PREVIEW
+  // TOWER PREVIEW
   if (placingTower) {
     const snap = snapToGrid(mouseX, mouseY, gridSize);
-
     ctx.beginPath();
     ctx.arc(snap.x, snap.y, 120, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0,255,255,0.15)";
     ctx.fill();
-
     ctx.beginPath();
     ctx.arc(snap.x, snap.y, 10, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0,255,255,0.6)";
     ctx.fill();
   }
 
-  // UI TEXT
+  // UI
   ctx.fillStyle = "white";
   ctx.font = "20px Arial";
   ctx.fillText(`Money: $${money}`, 10, 25);
   ctx.fillText(`Wave: ${currentWave}`, 10, 55);
-
   ctx.fillStyle = "orange";
   ctx.fillText(`Enemies alive: ${enemiesAlive}`, 10, 85);
 
-  // SCORE
   drawScore(ctx);
 }
 
@@ -176,71 +154,44 @@ function draw() {
 function gameLoop() {
   const now = Date.now();
 
-  // ==== WAVE CONTROL ====
+  // ==== WAVE SPAWNING ====
   if (enemiesToSpawn === 0 && enemiesAlive === 0) {
     if (waveCountdown > 0) {
-      if (now - lastTime >= 1000) {
-        waveCountdown--;
-        lastTime = now;
-      }
+      if (now - lastTime >= 1000) { waveCountdown--; lastTime = now; }
     } else {
       enemiesToSpawn = fib[waveIndex] || fib[fib.length - 1];
       waveIndex++;
       currentWave++;
       waveCountdown = 5;
     }
-
-  } else {
-    if (enemiesToSpawn > 0 && Math.random() < 0.02) {
-      const type = currentWave > 3 ? "fast" : "normal";  
-      enemiesAlive = spawnEnemy(type, enemies, enemiesAlive, path);
-      enemiesToSpawn--;
-    }
+  } else if (enemiesToSpawn > 0 && Math.random() < 0.02) {
+    let type;
+    if (currentWave <= 5) type = "normal";         // RED ONLY
+    else if (currentWave === 6) type = "fast";     // PURPLE ONLY
+    else type = Math.random() < 0.65 ? "normal" : "fast"; // MIX
+    enemiesAlive = spawnEnemy(type, enemies, enemiesAlive, path);
+    enemiesToSpawn--;
   }
 
   // UPDATE ENEMIES
   enemies.forEach(e => updateEnemy(e, path));
 
-  // UPDATE TOWERS + SPAWN BULLETS
+  // UPDATE TOWERS + BULLETS
   towers.forEach(t => {
     const shotTarget = updateTower(t, enemies);
-
-    if (shotTarget) {
-      bullets.push({
-        x1: t.x,
-        y1: t.y,
-        x2: shotTarget.x,
-        y2: shotTarget.y,
-        life: 8
-      });
-    }
+    if (shotTarget) bullets.push({ x1: t.x, y1: t.y, x2: shotTarget.x, y2: shotTarget.y, life: 8 });
   });
 
-  // UPDATE BULLETS
-  bullets = bullets.filter(b => {
-    b.life--;
-    return b.life > 0;
-  });
+  bullets = bullets.filter(b => { b.life--; return b.life > 0; });
 
   // CLEANUP ENEMIES
   enemies = enemies.filter(e => {
-    if (e.hp <= 0) {
-      money += enemyReward;
-      enemiesAlive--;
-      addKillScore(1000);
-      return false;
-    }
-    if (e.pathIndex >= path.length - 1) {
-      enemiesAlive--;
-      subtractLeakScore(10000);
-      return false;
-    }
+    if (e.hp <= 0) { money += enemyReward; enemiesAlive--; addKillScore(1000); return false; }
+    if (e.pathIndex >= path.length - 1) { enemiesAlive--; subtractLeakScore(10000); return false; }
     return true;
   });
-
   enemiesAlive = Math.max(enemiesAlive, 0);
 
-  // DRAW EVERYTHING
   draw();
   requestAnimationFrame(gameLoop);
 }
