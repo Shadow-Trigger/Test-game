@@ -6,7 +6,7 @@ import {
   createCircleTower,
   updateCircleTower,
   drawCircleTower
-} from './Towers/CircleTower.js';
+} from './Tower/CircleTower.js';
 
 import { addKillScore, subtractLeakScore, drawScore } from './highScore.js';
 
