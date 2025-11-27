@@ -90,9 +90,18 @@ canvas.addEventListener("click", () => {
 
 // ==== DRAW EVERYTHING ====
 function draw() {
-  // === Clear background first ===
+  // === Clear background ===
   ctx.fillStyle = "#222";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // === Draw grid FIRST (under everything) ===
+  ctx.strokeStyle = "#444";
+  ctx.lineWidth = 2;
+  for (let c = 0; c < cols; c++) {
+    for (let r = 0; r < rows; r++) {
+      ctx.strokeRect(c * gridSize, r * gridSize, gridSize, gridSize);
+    }
+  }
 
   // === Draw Path ===
   ctx.strokeStyle = "gray";
@@ -128,19 +137,11 @@ function draw() {
     ctx.arc(snap.x, snap.y, 120, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0,255,255,0.15)";
     ctx.fill();
+
     ctx.beginPath();
     ctx.arc(snap.x, snap.y, 10, 0, Math.PI * 2);
     ctx.fillStyle = "rgba(0,255,255,0.6)";
     ctx.fill();
-  }
-
-  // === Draw grid last to prevent flicker ===
-  ctx.strokeStyle = "#444";
-  ctx.lineWidth = 2;
-  for (let c = 0; c < cols; c++) {
-    for (let r = 0; r < rows; r++) {
-      ctx.strokeRect(c * gridSize, r * gridSize, gridSize, gridSize);
-    }
   }
 
   // === UI ===
@@ -150,6 +151,7 @@ function draw() {
   ctx.fillText(`Wave: ${currentWave}`, 10, 55);
   ctx.fillStyle = "orange";
   ctx.fillText(`Enemies alive: ${enemiesAlive}`, 10, 85);
+
   drawScore(ctx);
 }
 
