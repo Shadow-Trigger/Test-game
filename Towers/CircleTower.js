@@ -31,7 +31,7 @@ export function updateCircleTower(tower, enemies, bullets) {
 
   // Shoot
   tower.reload = tower.reloadTime;
-  target.hp -= 1;
+  target.hp -= 10;
 
   // Bullet trail
   bullets.push({
