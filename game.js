@@ -8,6 +8,12 @@ import {
   drawCircleTower
 } from './Towers/CircleTower.js';
 
+import {
+  createTriangleTower,
+  updateTriangleTower,
+  drawTriangleTower
+} from './Towers/TriangleTower.js';
+
 import { addKillScore, subtractLeakScore, drawScore } from './highScore.js';
 
 console.log("game.js loaded");
@@ -28,21 +34,27 @@ let bullets = [];
 let occupiedCells = new Set();
 
 let placingTower = false;
+let selectedTowerType = null;
+
 let mouseX = 0;
 let mouseY = 0;
 let hoverTower = null;
 
 let money = 200;
-const towerCost = 100;
+const towerCosts = {
+  circle: 100,
+  triangle: 150
+};
+
 const enemyReward = 10;
 
 // WAVES
-let currentWave = 0;
+let currentWave = 1;
 let waveIndex = 0;
 let enemiesToSpawn = 0;
 let enemiesAlive = 0;
 
-let waveCountdown = 3;
+let waveCountdown = 5;
 let lastTime = Date.now();
 
 // PATH
@@ -59,9 +71,15 @@ const path = [
 const fib = [1, 1];
 for (let i = 2; i < 20; i++) fib[i] = fib[i - 1] + fib[i - 2];
 
-// BUTTON
+// BUTTONS
 document.getElementById("circleTowerBtn").addEventListener("click", () => {
   placingTower = true;
+  selectedTowerType = "circle";
+});
+
+document.getElementById("triangleTowerBtn").addEventListener("click", () => {
+  placingTower = true;
+  selectedTowerType = "triangle";
 });
 
 // MOUSE MOVE
@@ -71,14 +89,13 @@ canvas.addEventListener("mousemove", e => {
   mouseY = e.clientY - rect.top;
 
   hoverTower = towers.find(
-    t => Math.hypot(mouseX - t.x, mouseY - t.y) < 10
+    t => Math.hypot(mouseX - t.x, mouseY - t.y) < 12
   );
 });
 
 // PLACE TOWER
 canvas.addEventListener("click", () => {
-  if (!placingTower) return;
-  if (money < towerCost) return alert("Not enough money!");
+  if (!placingTower || !selectedTowerType) return;
 
   const snap = snapToGrid(mouseX, mouseY, gridSize);
   const key = `${snap.col},${snap.row}`;
@@ -86,19 +103,29 @@ canvas.addEventListener("click", () => {
   if (occupiedCells.has(key)) return alert("Cell occupied!");
   if (isPathCell(snap.col, snap.row, path, gridSize)) return alert("Can't place on the path!");
 
-  const tower = createCircleTower(snap.x, snap.y, snap.col, snap.row);
+  const cost = towerCosts[selectedTowerType];
+  if (money < cost) return alert("Not enough money!");
+
+  let tower;
+  if (selectedTowerType === "circle") {
+    tower = createCircleTower(snap.x, snap.y, snap.col, snap.row);
+  } else if (selectedTowerType === "triangle") {
+    tower = createTriangleTower(snap.x, snap.y, snap.col, snap.row);
+  }
+
   towers.push(tower);
   occupiedCells.add(key);
+  money -= cost;
 
-  money -= towerCost;
   placingTower = false;
+  selectedTowerType = null;
 });
 
 // DRAW FRAME
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // GRID UNDER EVERYTHING
+  // GRID
   ctx.strokeStyle = "#333";
   ctx.lineWidth = 1;
   for (let c = 0; c < cols; c++) {
@@ -116,7 +143,10 @@ function draw() {
   ctx.stroke();
 
   // TOWERS
-  towers.forEach(t => drawCircleTower(t, hoverTower, ctx));
+  towers.forEach(t => {
+    if (t.type === "circle") drawCircleTower(t, hoverTower, ctx);
+    if (t.type === "triangle") drawTriangleTower(t, hoverTower, ctx);
+  });
 
   // ENEMIES
   enemies.forEach(e => {
@@ -134,22 +164,28 @@ function draw() {
     ctx.stroke();
   });
 
-  // TOWER PLACEMENT PREVIEW
-  if (placingTower) {
+  // PLACEMENT PREVIEW
+  if (placingTower && selectedTowerType) {
     const snap = snapToGrid(mouseX, mouseY, gridSize);
+
+    const previewRange =
+      selectedTowerType === "circle" ? 120 : 160;
 
     ctx.fillStyle = "rgba(0,255,255,0.15)";
     ctx.beginPath();
-    ctx.arc(snap.x, snap.y, 120, 0, Math.PI * 2);
+    ctx.arc(snap.x, snap.y, previewRange, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = "rgba(0,255,255,0.6)";
+    ctx.fillStyle = selectedTowerType === "circle"
+      ? "rgba(0,255,255,0.5)"
+      : "rgba(0,255,100,0.5)";
+
     ctx.beginPath();
     ctx.arc(snap.x, snap.y, 10, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // UI
+  // UI TEXT
   ctx.fillStyle = "white";
   ctx.font = "20px Arial";
   ctx.fillText(`Money: $${money}`, 10, 25);
@@ -184,11 +220,15 @@ function gameLoop() {
 
   // UPDATE
   enemies.forEach(e => updateEnemy(e, path));
-  towers.forEach(t => updateCircleTower(t, enemies, bullets));
+
+  towers.forEach(t => {
+    if (t.type === "circle") updateCircleTower(t, enemies, bullets);
+    if (t.type === "triangle") updateTriangleTower(t, enemies, bullets);
+  });
 
   bullets = bullets.filter(b => (--b.life > 0));
 
-  // CLEANUP ENEMIES
+  // CLEANUP
   enemies = enemies.filter(e => {
     if (e.hp <= 0) {
       enemiesAlive--;
