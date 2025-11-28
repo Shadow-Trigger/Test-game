@@ -7,7 +7,7 @@ export function createTriangleTower(x, y, col, row) {
     y,
     col,
     row,
-    range: 300,
+    range: 500,
     reloadTime: 100,
     reload: 0
   };
