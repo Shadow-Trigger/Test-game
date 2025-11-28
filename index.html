@@ -1,21 +1,56 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>TD Game</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: #202020;
+      color: white;
+      font-family: Arial;
+      text-align: center;
+      margin: 0;
+      padding: 20px;
+    }
+
+    #gameCanvas {
+      background: #111;
+      border: 3px solid #555;
+      display: block;
+      margin: 20px auto;
+    }
+
+    .btn-container {
+      margin-bottom: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border-radius: 6px;
+      background: #333;
+      color: white;
+      border: 1px solid #666;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #555;
+    }
+  </style>
 </head>
 
 <body>
 
-  <div id="game-container">
-    <canvas id="gameCanvas" width="900" height="500"></canvas>
+  <h1>My Tower Defense Game</h1>
 
-    <div id="ui">
-      <button id="circleTowerBtn">Circle Tower</button>
-      <div id="towerPrice">$100</div>
-    </div>
+  <div class="btn-container">
+    <button id="circleTowerBtn">Circle Tower ($100)</button>
+    <button id="triangleTowerBtn">Triangle Tower ($150)</button>
   </div>
 
-  <script type="module" src="game.js"></script>
+  <canvas id="gameCanvas" width="900" height="600"></canvas>
+
+  <script type="module" src="./game.js"></script>
 </body>
 </html>
