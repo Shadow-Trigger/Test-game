@@ -43,18 +43,18 @@ let hoverTower = null;
 let money = 200;
 const towerCosts = {
   circle: 100,
-  triangle: 150
+  triangle: 170
 };
 
 const enemyReward = 10;
 
 // WAVES
-let currentWave = 1;
+let currentWave = 0;
 let waveIndex = 0;
 let enemiesToSpawn = 0;
 let enemiesAlive = 0;
 
-let waveCountdown = 5;
+let waveCountdown = 3;
 let lastTime = Date.now();
 
 // PATH
