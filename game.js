@@ -42,7 +42,7 @@ let waveIndex = 0;
 let enemiesToSpawn = 0;
 let enemiesAlive = 0;
 
-let waveCountdown = 5;
+let waveCountdown = 3;
 let lastTime = Date.now();
 
 // PATH
