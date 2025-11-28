@@ -7,8 +7,8 @@ export function createTriangleTower(x, y, col, row) {
     y,
     col,
     row,
-    range: 160,
-    reloadTime: 45,
+    range: 250,
+    reloadTime: 100,
     reload: 0
   };
 }
@@ -30,7 +30,7 @@ export function updateTriangleTower(tower, enemies, bullets) {
   if (!target) return;
 
   tower.reload = tower.reloadTime;
-  target.hp -= 2; // stronger than circle tower
+  target.hp -= 25; // stronger than circle tower
 
   bullets.push({
     x1: tower.x,
