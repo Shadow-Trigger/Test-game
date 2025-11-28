@@ -33,28 +33,27 @@ let towers = [];
 let bullets = [];
 let occupiedCells = new Set();
 
-let placingTower = false;
-let selectedTowerType = null;
-
+let placingTower = null;  // "circle" or "triangle"
 let mouseX = 0;
 let mouseY = 0;
 let hoverTower = null;
 
 let money = 200;
+
 const towerCosts = {
   circle: 100,
-  triangle: 170
+  triangle: 150
 };
 
 const enemyReward = 10;
 
 // WAVES
-let currentWave = 0;
+let currentWave = 1;
 let waveIndex = 0;
 let enemiesToSpawn = 0;
 let enemiesAlive = 0;
 
-let waveCountdown = 3;
+let waveCountdown = 5;
 let lastTime = Date.now();
 
 // PATH
@@ -73,13 +72,11 @@ for (let i = 2; i < 20; i++) fib[i] = fib[i - 1] + fib[i - 2];
 
 // BUTTONS
 document.getElementById("circleTowerBtn").addEventListener("click", () => {
-  placingTower = true;
-  selectedTowerType = "circle";
+  placingTower = "circle";
 });
 
 document.getElementById("triangleTowerBtn").addEventListener("click", () => {
-  placingTower = true;
-  selectedTowerType = "triangle";
+  placingTower = "triangle";
 });
 
 // MOUSE MOVE
@@ -95,7 +92,10 @@ canvas.addEventListener("mousemove", e => {
 
 // PLACE TOWER
 canvas.addEventListener("click", () => {
-  if (!placingTower || !selectedTowerType) return;
+  if (!placingTower) return;
+
+  const cost = towerCosts[placingTower];
+  if (money < cost) return alert("Not enough money!");
 
   const snap = snapToGrid(mouseX, mouseY, gridSize);
   const key = `${snap.col},${snap.row}`;
@@ -103,29 +103,25 @@ canvas.addEventListener("click", () => {
   if (occupiedCells.has(key)) return alert("Cell occupied!");
   if (isPathCell(snap.col, snap.row, path, gridSize)) return alert("Can't place on the path!");
 
-  const cost = towerCosts[selectedTowerType];
-  if (money < cost) return alert("Not enough money!");
-
   let tower;
-  if (selectedTowerType === "circle") {
+  if (placingTower === "circle") {
     tower = createCircleTower(snap.x, snap.y, snap.col, snap.row);
-  } else if (selectedTowerType === "triangle") {
+  } else if (placingTower === "triangle") {
     tower = createTriangleTower(snap.x, snap.y, snap.col, snap.row);
   }
 
   towers.push(tower);
   occupiedCells.add(key);
-  money -= cost;
 
-  placingTower = false;
-  selectedTowerType = null;
+  money -= cost;
+  placingTower = null;
 });
 
 // DRAW FRAME
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // GRID
+  // GRID UNDER EVERYTHING
   ctx.strokeStyle = "#333";
   ctx.lineWidth = 1;
   for (let c = 0; c < cols; c++) {
@@ -142,8 +138,15 @@ function draw() {
   for (let p of path) ctx.lineTo(p.x, p.y);
   ctx.stroke();
 
-  // TOWERS
+  // TOWERS (with hover-range)
   towers.forEach(t => {
+    if (hoverTower === t) {
+      ctx.beginPath();
+      ctx.arc(t.x, t.y, t.range, 0, Math.PI * 2);
+      ctx.fillStyle = "rgba(0,255,255,0.15)";
+      ctx.fill();
+    }
+
     if (t.type === "circle") drawCircleTower(t, hoverTower, ctx);
     if (t.type === "triangle") drawTriangleTower(t, hoverTower, ctx);
   });
@@ -165,27 +168,25 @@ function draw() {
   });
 
   // PLACEMENT PREVIEW
-  if (placingTower && selectedTowerType) {
+  if (placingTower) {
     const snap = snapToGrid(mouseX, mouseY, gridSize);
 
     const previewRange =
-      selectedTowerType === "circle" ? 120 : 160;
+      placingTower === "circle" ? 120 :
+      placingTower === "triangle" ? 160 : 100;
 
     ctx.fillStyle = "rgba(0,255,255,0.15)";
     ctx.beginPath();
     ctx.arc(snap.x, snap.y, previewRange, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.fillStyle = selectedTowerType === "circle"
-      ? "rgba(0,255,255,0.5)"
-      : "rgba(0,255,100,0.5)";
-
+    ctx.fillStyle = "rgba(0,255,255,0.6)";
     ctx.beginPath();
     ctx.arc(snap.x, snap.y, 10, 0, Math.PI * 2);
     ctx.fill();
   }
 
-  // UI TEXT
+  // UI
   ctx.fillStyle = "white";
   ctx.font = "20px Arial";
   ctx.fillText(`Money: $${money}`, 10, 25);
@@ -228,7 +229,7 @@ function gameLoop() {
 
   bullets = bullets.filter(b => (--b.life > 0));
 
-  // CLEANUP
+  // CLEANUP ENEMIES
   enemies = enemies.filter(e => {
     if (e.hp <= 0) {
       enemiesAlive--;
