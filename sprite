@@ -1,0 +1,11 @@
+const canvas = document.getElementById("game");
+const ctx = canvas.getContext("2d");
+
+// Load the sprite
+const playerSprite = new Image();
+playerSprite.src = "assets/sprites/player.png";
+
+// Draw when ready
+playerSprite.onload = () => {
+    ctx.drawImage(playerSprite, 100, 100, 64, 64);  // x, y, width, height
+};
