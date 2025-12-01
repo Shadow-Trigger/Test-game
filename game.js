@@ -123,7 +123,7 @@ function draw() {
 
   // GRID UNDER EVERYTHING
   ctx.strokeStyle = "#333";
-  ctx.lineWidth = 1;
+  ctx.lineWidth = 3;
   for (let c = 0; c < cols; c++) {
     for (let r = 0; r < rows; r++) {
       ctx.strokeRect(c * gridSize, r * gridSize, gridSize, gridSize);
