@@ -175,16 +175,24 @@ function draw() {
       placingTower === "circle" ? 120 :
       placingTower === "triangle" ? 210 : 100;
 
-    ctx.fillStyle = "rgba(0,255,255,0.15)";
-    ctx.beginPath();
-    ctx.arc(snap.x, snap.y, previewRange, 0, Math.PI * 2);
-    ctx.fill();
-
     ctx.fillStyle = "rgba(0,255,255,0.6)";
+
+if (placingTower === "circle") {
+    // Circle preview
     ctx.beginPath();
     ctx.arc(snap.x, snap.y, 10, 0, Math.PI * 2);
     ctx.fill();
-  }
+}
+
+if (placingTower === "triangle") {
+    // Triangle preview
+    ctx.beginPath();
+    ctx.moveTo(snap.x, snap.y - 12);
+    ctx.lineTo(snap.x - 12, snap.y + 12);
+    ctx.lineTo(snap.x + 12, snap.y + 12);
+    ctx.closePath();
+    ctx.fill();
+}
 
   // UI
   ctx.fillStyle = "white";
