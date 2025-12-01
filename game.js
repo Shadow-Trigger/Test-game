@@ -48,12 +48,12 @@ const towerCosts = {
 const enemyReward = 10;
 
 // WAVES
-let currentWave = 1;
+let currentWave = 0;
 let waveIndex = 0;
 let enemiesToSpawn = 0;
 let enemiesAlive = 0;
 
-let waveCountdown = 5;
+let waveCountdown = 3;
 let lastTime = Date.now();
 
 // PATH
@@ -173,7 +173,7 @@ function draw() {
 
     const previewRange =
       placingTower === "circle" ? 120 :
-      placingTower === "triangle" ? 160 : 100;
+      placingTower === "triangle" ? 210 : 100;
 
     ctx.fillStyle = "rgba(0,255,255,0.15)";
     ctx.beginPath();
