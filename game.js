@@ -42,7 +42,7 @@ let money = 200;
 
 const towerCosts = {
   circle: 100,
-  triangle: 150
+  triangle: 170
 };
 
 const enemyReward = 10;
@@ -53,7 +53,7 @@ let waveIndex = 0;
 let enemiesToSpawn = 0;
 let enemiesAlive = 0;
 
-let waveCountdown = 3;
+let waveCountdown = 1;
 let lastTime = Date.now();
 
 // PATH
