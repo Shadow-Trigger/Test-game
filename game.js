@@ -167,7 +167,7 @@ function draw() {
     ctx.stroke();
   });
 
-  // PLACEMENT PREVIEW
+// PLACEMENT PREVIEW
 if (placingTower) {
     const snap = snapToGrid(mouseX, mouseY, gridSize);
 
@@ -199,7 +199,7 @@ if (placingTower) {
         ctx.fill();
     }
 }
-
+  
   // UI
   ctx.fillStyle = "white";
   ctx.font = "20px Arial";
