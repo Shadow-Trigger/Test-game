@@ -198,7 +198,7 @@ if (placingTower) {
         ctx.closePath();
         ctx.fill();
     }
-}
+}  // <-- IMPORTANT closing brace
   
   // UI
   ctx.fillStyle = "white";
