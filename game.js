@@ -58,12 +58,6 @@ let enemiesAlive = 0;
 let waveCountdown = 1;
 let lastTime = Date.now();
 
-// PATH
-const path = [
-  { x: 0, y: ... },
-  ...
-];
-
 // FIBONACCI WAVES
 const fib = [1, 1];
 for (let i = 2; i < 20; i++) fib[i] = fib[i - 1] + fib[i - 2];
@@ -237,7 +231,7 @@ function gameLoop() {
   }
 
   // UPDATE
-  enemies.forEach(e => updateEnemy(e, path));
+  enemies.forEach(e => updateEnemy(e));
 
   towers.forEach(t => {
     if (t.type === "circle") updateCircleTower(t, enemies, bullets);
