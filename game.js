@@ -17,6 +17,11 @@ import {
 
 import { addKillScore, subtractLeakScore, drawScore } from './highScore.js';
 
+import { initMap } from "./mapManager.js";
+
+// Initialize path
+initMap();
+
 console.log("game.js loaded");
 
 // CANVAS
