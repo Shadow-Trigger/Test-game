@@ -214,13 +214,18 @@ if (placingTower) {
 // MAIN LOOP
 function gameLoop() {
   const now = Date.now();
+  const deltaTime = now - lastTime;   // <-- NEW
+  lastTime = now;                     // <-- NEW
+
+  // --- UPDATE MAP ---
+  updateMap(deltaTime);               // <-- NEW
+  const path = getPath();             // <-- REPLACES STATIC path
 
   // WAVES
   if (enemiesToSpawn === 0 && enemiesAlive === 0) {
     if (waveCountdown > 0) {
       if (now - lastTime >= 1000) {
         waveCountdown--;
-        lastTime = now;
       }
     } else {
       enemiesToSpawn = fib[waveIndex] || fib[fib.length - 1];
