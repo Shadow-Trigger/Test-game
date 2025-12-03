@@ -43,8 +43,8 @@ function shiftMapLeft() {
   // Shift all path points left
   pathPoints = pathPoints.map(p => ({ x: p.x - dx, y: p.y }));
 
-  // Remove points that are off the left side
-  pathPoints = pathPoints.filter(p => p.x >= 0);
+  // Only remove points far off-screen (more than one extra grid to the left)
+  pathPoints = pathPoints.filter(p => p.x >= -gridSize);
 
   // Add a new point on the right
   const last = pathPoints[pathPoints.length - 1];
