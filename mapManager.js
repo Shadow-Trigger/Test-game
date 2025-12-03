@@ -50,21 +50,21 @@ export function getPath() {
 
 // --- INTERNAL ---
 function shiftMapLeft() {
-  // 1️⃣ Remove leftmost column from mapGrid
+  // Remove leftmost column from mapGrid
   mapGrid.forEach(row => row.shift());
 
-  // 2️⃣ Add new column on the right
+  // Add new column on the right
   mapGrid.forEach(row => {
     // 0 = empty, 1 = path (we will adjust later)
     row.push(0);
   });
 
-  // 3️⃣ Move all path points left
+  // Move all path points left
   pathPoints = pathPoints
     .map(p => ({ x: p.x - gridSize, y: p.y }))
     .filter(p => p.x >= 0); // remove points that went offscreen
 
-  // 4️⃣ Add new path piece on the right
+  // Add new path piece on the right
   // Get last point
   const last = pathPoints[pathPoints.length - 1] || { x: 0, y: 4 * gridSize + gridSize / 2 };
 
