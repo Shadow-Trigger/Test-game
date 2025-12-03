@@ -5,7 +5,7 @@ export function createSlowEnemy(path) {
     x: path[0].x,
     y: path[0].y,
     pathIndex: 0,
-    speed: 1,          // slower than normal
+    speed: 0.75,          // slower than normal
     hp: 75,
     color: "blue"
   };
