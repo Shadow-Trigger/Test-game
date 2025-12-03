@@ -3,7 +3,6 @@ import { spawnEnemyByWave, updateEnemy } from './enemySpawner.js';
 import { snapToGrid, isPathCell } from './gridUtils.js';
 import { updateMap, getPath } from "./mapManager.js";
 
-
 import {
   createCircleTower,
   updateCircleTower,
@@ -34,19 +33,18 @@ let enemies = [];
 let towers = [];
 let bullets = [];
 let occupiedCells = new Set();
-
 let placingTower = null;  // "circle" or "triangle"
 let mouseX = 0;
 let mouseY = 0;
 let hoverTower = null;
-
 let money = 200;
+
+let path = []; // dynamic path from mapManager
 
 const towerCosts = {
   circle: 100,
   triangle: 170
 };
-
 const enemyReward = 10;
 
 // WAVES
@@ -54,8 +52,8 @@ let currentWave = 0;
 let waveIndex = 0;
 let enemiesToSpawn = 0;
 let enemiesAlive = 0;
-
 let waveCountdown = 1;
+let waveCountdownTimer = 0;
 let lastTime = Date.now();
 
 // FIBONACCI WAVES
@@ -66,7 +64,6 @@ for (let i = 2; i < 20; i++) fib[i] = fib[i - 1] + fib[i - 2];
 document.getElementById("circleTowerBtn").addEventListener("click", () => {
   placingTower = "circle";
 });
-
 document.getElementById("triangleTowerBtn").addEventListener("click", () => {
   placingTower = "triangle";
 });
@@ -113,7 +110,7 @@ canvas.addEventListener("click", () => {
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // GRID UNDER EVERYTHING
+  // GRID
   ctx.strokeStyle = "#333";
   ctx.lineWidth = 3;
   for (let c = 0; c < cols; c++) {
@@ -125,12 +122,14 @@ function draw() {
   // PATH
   ctx.strokeStyle = "#666";
   ctx.lineWidth = 10;
-  ctx.beginPath();
-  ctx.moveTo(path[0].x, path[0].y);
-  for (let p of path) ctx.lineTo(p.x, p.y);
-  ctx.stroke();
+  if (path.length > 0) {
+    ctx.beginPath();
+    ctx.moveTo(path[0].x, path[0].y);
+    for (let p of path) ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+  }
 
-  // TOWERS (with hover-range)
+  // TOWERS
   towers.forEach(t => {
     if (hoverTower === t) {
       ctx.beginPath();
@@ -138,7 +137,6 @@ function draw() {
       ctx.fillStyle = "rgba(0,255,255,0.15)";
       ctx.fill();
     }
-
     if (t.type === "circle") drawCircleTower(t, hoverTower, ctx);
     if (t.type === "triangle") drawTriangleTower(t, hoverTower, ctx);
   });
@@ -159,39 +157,36 @@ function draw() {
     ctx.stroke();
   });
 
-// PLACEMENT PREVIEW
-if (placingTower) {
+  // TOWER PLACEMENT PREVIEW
+  if (placingTower) {
     const snap = snapToGrid(mouseX, mouseY, gridSize);
 
-    // --- Range Circle ---
+    // RANGE
     const previewRange =
         placingTower === "circle" ? 120 :
         placingTower === "triangle" ? 210 : 100;
-
     ctx.fillStyle = "rgba(0,255,255,0.15)";
     ctx.beginPath();
     ctx.arc(snap.x, snap.y, previewRange, 0, Math.PI * 2);
     ctx.fill();
 
-    // --- Center Shape ---
+    // CENTER SHAPE
     ctx.fillStyle = "rgba(0,255,255,0.6)";
-
     if (placingTower === "circle") {
-        ctx.beginPath();
-        ctx.arc(snap.x, snap.y, 10, 0, Math.PI * 2);
-        ctx.fill();
+      ctx.beginPath();
+      ctx.arc(snap.x, snap.y, 10, 0, Math.PI * 2);
+      ctx.fill();
     }
-
     if (placingTower === "triangle") {
-        ctx.beginPath();
-        ctx.moveTo(snap.x, snap.y - 12);
-        ctx.lineTo(snap.x - 12, snap.y + 12);
-        ctx.lineTo(snap.x + 12, snap.y + 12);
-        ctx.closePath();
-        ctx.fill();
+      ctx.beginPath();
+      ctx.moveTo(snap.x, snap.y - 12);
+      ctx.lineTo(snap.x - 12, snap.y + 12);
+      ctx.lineTo(snap.x + 12, snap.y + 12);
+      ctx.closePath();
+      ctx.fill();
     }
-}  // <-- IMPORTANT closing brace
-  
+  }
+
   // UI
   ctx.fillStyle = "white";
   ctx.font = "20px Arial";
@@ -199,25 +194,27 @@ if (placingTower) {
   ctx.fillText(`Wave: ${currentWave}`, 10, 55);
   ctx.fillStyle = "orange";
   ctx.fillText(`Enemies alive: ${enemiesAlive}`, 10, 85);
-
   drawScore(ctx);
 }
 
 // MAIN LOOP
 function gameLoop() {
   const now = Date.now();
-  const deltaTime = now - lastTime;   // <-- NEW
-  lastTime = now;                     // <-- NEW
+  const deltaTime = now - lastTime;
+  lastTime = now;
 
   // --- UPDATE MAP ---
-  updateMap(deltaTime);               // <-- NEW
-  const path = getPath();             // <-- REPLACES STATIC path
+  updateMap(deltaTime);
+  path = getPath();
 
-  // WAVES
+  // --- WAVES ---
+  waveCountdownTimer += deltaTime;
+
   if (enemiesToSpawn === 0 && enemiesAlive === 0) {
     if (waveCountdown > 0) {
-      if (now - lastTime >= 1000) {
+      if (waveCountdownTimer >= 1000) {
         waveCountdown--;
+        waveCountdownTimer = 0;
       }
     } else {
       enemiesToSpawn = fib[waveIndex] || fib[fib.length - 1];
@@ -230,9 +227,10 @@ function gameLoop() {
     enemiesToSpawn--;
   }
 
-  // UPDATE
-  enemies.forEach(e => updateEnemy(e));
+  // --- UPDATE ENEMIES ---
+  enemies.forEach(e => updateEnemy(e, path));
 
+  // --- UPDATE TOWERS ---
   towers.forEach(t => {
     if (t.type === "circle") updateCircleTower(t, enemies, bullets);
     if (t.type === "triangle") updateTriangleTower(t, enemies, bullets);
@@ -240,7 +238,7 @@ function gameLoop() {
 
   bullets = bullets.filter(b => (--b.life > 0));
 
-  // CLEANUP ENEMIES
+  // --- CLEANUP ---
   enemies = enemies.filter(e => {
     if (e.hp <= 0) {
       enemiesAlive--;
@@ -248,13 +246,11 @@ function gameLoop() {
       addKillScore(1000);
       return false;
     }
-
     if (e.pathIndex >= path.length - 1) {
       enemiesAlive--;
       subtractLeakScore(10000);
       return false;
     }
-
     return true;
   });
 
