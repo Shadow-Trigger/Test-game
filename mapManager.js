@@ -24,9 +24,9 @@ export function initMap() {
 export function updateMap(deltaTime) {
   shiftTimer += deltaTime;
 
-  // Shift map right every 20 seconds
+  // Shift map left every 20 seconds
   if (shiftTimer >= 20000) {
-    shiftMapRight();
+    shiftMapLeft();
     shiftTimer = 0;
   }
 }
@@ -37,16 +37,25 @@ export function getPath() {
 }
 
 // --- INTERNAL ---
-function shiftMapRight() {
-  const dx = gridSize; // move by one grid square
-  pathPoints = pathPoints.map(p => ({ x: p.x + dx, y: p.y }));
+function shiftMapLeft() {
+  const dx = gridSize;
 
-  // Procedurally extend path if needed
+  // Shift all path points left
+  pathPoints = pathPoints.map(p => ({ x: p.x - dx, y: p.y }));
+
+  // Remove points that are off the left side
+  pathPoints = pathPoints.filter(p => p.x >= 0);
+
+  // Add a new point on the right
   const last = pathPoints[pathPoints.length - 1];
-  if (last.x < cols * gridSize) {
-    // Random vertical offset: -1, 0, +1 rows
-    const offset = (Math.floor(Math.random() * 3) - 1) * gridSize;
-    const newY = Math.max(gridSize / 2, Math.min(rows * gridSize - gridSize / 2, last.y + offset));
-    pathPoints.push({ x: last.x + gridSize, y: newY });
-  }
+  let newX = last ? last.x + gridSize : gridSize / 2;
+
+  // Random vertical move: -1, 0, +1 row
+  const offset = (Math.floor(Math.random() * 3) - 1) * gridSize;
+  let newY = last ? last.y + offset : 4 * gridSize + gridSize / 2;
+
+  // Clamp to valid rows
+  newY = Math.max(gridSize / 2, Math.min(rows * gridSize - gridSize / 2, newY));
+
+  pathPoints.push({ x: newX, y: newY });
 }
