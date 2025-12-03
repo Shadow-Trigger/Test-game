@@ -1,6 +1,9 @@
 import { enemyTypes } from "./Enemies/index.js";
+import { getPath } from "./mapManager.js";   // <-- NEW
 
-export function spawnEnemyByWave(currentWave, enemies, enemiesAlive, path) {
+export function spawnEnemyByWave(currentWave, enemies, enemiesAlive) {
+  const path = getPath();                   // <-- NEW
+
   let type;
 
   if (currentWave <= 5) type = "normal";
@@ -20,7 +23,8 @@ export function spawnEnemyByWave(currentWave, enemies, enemiesAlive, path) {
   return enemiesAlive + 1;
 }
 
-export function updateEnemy(enemy, path) {
+export function updateEnemy(enemy) {
+  const path = getPath();                   // <-- NEW
   const updater = enemyTypes[enemy.type].update;
   updater(enemy, path);
 }
