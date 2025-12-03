@@ -60,12 +60,8 @@ let lastTime = Date.now();
 
 // PATH
 const path = [
-  { x: 0, y: 4 * gridSize + gridSize / 2 },
-  { x: 5 * gridSize + gridSize / 2, y: 4 * gridSize + gridSize / 2 },
-  { x: 5 * gridSize + gridSize / 2, y: 2 * gridSize + gridSize / 2 },
-  { x: 10 * gridSize + gridSize / 2, y: 2 * gridSize + gridSize / 2 },
-  { x: 10 * gridSize + gridSize / 2, y: 6 * gridSize + gridSize / 2 },
-  { x: 14 * gridSize + gridSize / 2, y: 6 * gridSize + gridSize / 2 }
+  { x: 0, y: ... },
+  ...
 ];
 
 // FIBONACCI WAVES
