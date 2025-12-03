@@ -86,3 +86,43 @@ function shiftMapLeft() {
     mapGrid[newRow][newCol] = 1;
   }
 }
+
+export function shiftMapLeft(towers, enemies, occupiedCells) {
+  // --- Shift path points ---
+  pathPoints = pathPoints
+    .map(p => ({ x: p.x - gridSize, y: p.y }))
+    .filter(p => p.x >= 0); // remove offscreen
+
+  // --- Add new path point at right ---
+  const last = pathPoints[pathPoints.length - 1] || { x: 0, y: 4 * gridSize + gridSize / 2 };
+  const offset = (Math.floor(Math.random() * 3) - 1) * gridSize;
+  let newY = last.y + offset;
+  newY = Math.max(gridSize / 2, Math.min((rows - 1) * gridSize + gridSize / 2, newY));
+  const newX = cols * gridSize + gridSize / 2;
+  pathPoints.push({ x: newX, y: newY });
+
+  // --- Shift towers ---
+  towers.forEach((t, i) => {
+    t.x -= gridSize;
+    t.col -= 1;
+    if (t.x < 0) towers.splice(i, 1); // remove offscreen
+  });
+
+  // --- Shift occupiedCells ---
+  const newOccupied = new Set();
+  occupiedCells.forEach(key => {
+    const [col, row] = key.split(",").map(Number);
+    if (col > 0) newOccupied.add(`${col - 1},${row}`);
+  });
+  occupiedCells.clear();
+  newOccupied.forEach(k => occupiedCells.add(k));
+
+  // --- Shift enemies ---
+  enemies.forEach((e, i) => {
+    e.x -= gridSize;
+    if (e.x < 0) enemies.splice(i, 1); // remove offscreen
+  });
+}
+
+
+
