@@ -1,6 +1,8 @@
 // game.js
 import { spawnEnemyByWave, updateEnemy } from './enemySpawner.js';
 import { snapToGrid, isPathCell } from './gridUtils.js';
+import { updateMap, getPath } from "./mapManager.js";
+
 
 import {
   createCircleTower,
