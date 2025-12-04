@@ -17,7 +17,7 @@ import {
 
 import { addKillScore, subtractLeakScore, drawScore } from './highScore.js';
 
-import { initMap } from "./mapManager.js";
+import { initMap, getPath, shiftMapLeft } from "./mapManager.js";
 initMap();  // <-- this must run once before the loop
 
 console.log("game.js loaded");
