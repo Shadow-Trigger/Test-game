@@ -8,7 +8,7 @@ let pathPoints = [];
 // -------- INIT MAP --------
 export function initMap() {
   pathPoints = [
-    { x: gridSize/2,            y: 4*gridSize + gridSize/2 },
+    { x: gridSize/2, y: 4*gridSize + gridSize/2 },
     { x: 5*gridSize + gridSize/2, y: 4*gridSize + gridSize/2 },
     { x: 5*gridSize + gridSize/2, y: 2*gridSize + gridSize/2 },
     { x:10*gridSize + gridSize/2, y: 2*gridSize + gridSize/2 },
@@ -22,21 +22,22 @@ export function getPath() {
   return pathPoints;
 }
 
-// -------- SHIFT MAP --------
+// -------- SHIFT MAP LEFT --------
+// Only shifts the path itself. Towers/enemies handled in game.js
 export function shiftMapLeft() {
   const newPath = [];
 
-  // shift all path points left
+  // Shift all path points left
   for (let p of pathPoints) {
     const nx = p.x - gridSize;
-    if (nx >= -gridSize) {
+    if (nx >= 0) {  // keep on-screen points
       newPath.push({ x: nx, y: p.y });
     }
   }
 
-  // add a new point on the right
-  const last = newPath[newPath.length - 1];
-  const lastRow = Math.floor(last.y / gridSize);
+  // Add a new point on the right
+  const last = newPath[newPath.length - 1] || { x: 0, y: 4*gridSize + gridSize/2 };
+  let lastRow = Math.floor(last.y / gridSize);
 
   let newRow = lastRow + (Math.floor(Math.random() * 3) - 1);
   newRow = Math.max(0, Math.min(rows - 1, newRow));
