@@ -206,11 +206,11 @@ function gameLoop() {
   const deltaTime = now - lastTime;
   lastTime = now;
 
-  shiftTimer += deltaTime;
-if (shiftTimer >= 20000) { // every 20 seconds
-  shiftMapLeft(towers, enemies, occupiedCells);
-  shiftTimer = 0;
-  path = getPath();
+ updateMap(deltaTime);
+shiftTimer += deltaTime;
+if (shiftTimer >= 20000) {
+    shiftMapLeft(towers, enemies, occupiedCells);
+    shiftTimer = 0;
 }
 
   // --- WAVES ---
