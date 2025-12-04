@@ -88,21 +88,26 @@ function draw() {
   ctx.strokeStyle = "#333"; ctx.lineWidth = 1;
   for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) ctx.strokeRect(c*gridSize, r*gridSize, gridSize, gridSize);
 
-  // path line (from path array)
-  path = getPath();
-  if (path && path.length > 0) {
-    ctx.strokeStyle = "#666"; ctx.lineWidth = 10;
+  // PATH LINE (from path array)
+path = getPath();
+if (path && path.length > 0) {
+    // Draw path line
+    ctx.strokeStyle = "#666"; 
+    ctx.lineWidth = 10;
     ctx.beginPath();
     ctx.moveTo(path[0].x, path[0].y);
     for (let p of path) ctx.lineTo(p.x, p.y);
     ctx.stroke();
-  }
-  ctx.fillStyle = "red";
-for (let p of path) {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
-    ctx.fill();
+
+    // Debug: draw red dots for path points
+    ctx.fillStyle = "red";
+    for (let p of path) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
 }
+
 
   
 
