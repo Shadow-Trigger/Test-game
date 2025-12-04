@@ -83,6 +83,7 @@ canvas.addEventListener("click", () => {
 function draw() {
   ctx.clearRect(0,0,canvas.width,canvas.height);
 
+  
   // grid lines
   ctx.strokeStyle = "#333"; ctx.lineWidth = 1;
   for (let c = 0; c < cols; c++) for (let r = 0; r < rows; r++) ctx.strokeRect(c*gridSize, r*gridSize, gridSize, gridSize);
@@ -96,6 +97,14 @@ function draw() {
     for (let p of path) ctx.lineTo(p.x, p.y);
     ctx.stroke();
   }
+  ctx.fillStyle = "red";
+for (let p of path) {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 5, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+  
 
   // towers
   towers.forEach(t => {
