@@ -210,6 +210,7 @@ function gameLoop() {
 if (shiftTimer >= 20000) { // every 20 seconds
   shiftMapLeft(towers, enemies, occupiedCells);
   shiftTimer = 0;
+  path = getPath();
 }
 
   // --- WAVES ---
