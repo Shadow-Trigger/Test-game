@@ -3,127 +3,73 @@ const gridSize = 60;
 const rows = 8;
 const cols = 15;
 
-// --- STATE ---
 let mapGrid = [];
 let pathPoints = [];
-let shiftTimer = 0;
 
-// ------------------------------------------------
-//  PUBLIC FUNCTIONS
-// ------------------------------------------------
-
+// initialize map and path
 export function initMap() {
-    // Create empty grid
-    mapGrid = Array.from({ length: rows }, () => Array(cols).fill(0));
+  console.log("[mapManager] initMap");
+  mapGrid = Array.from({ length: rows }, () => Array(cols).fill(0));
 
-    // Initial hard-coded path
-    pathPoints = [
-        { x: 0 * gridSize + gridSize/2,  y: 4 * gridSize + gridSize/2 },
-        { x: 5 * gridSize + gridSize/2,  y: 4 * gridSize + gridSize/2 },
-        { x: 5 * gridSize + gridSize/2,  y: 2 * gridSize + gridSize/2 },
-        { x:10 * gridSize + gridSize/2,  y: 2 * gridSize + gridSize/2 },
-        { x:10 * gridSize + gridSize/2,  y: 6 * gridSize + gridSize/2 },
-        { x:14 * gridSize + gridSize/2,  y: 6 * gridSize + gridSize/2 },
-    ];
+  // starting path (aligned to grid centers)
+  pathPoints = [
+    { x: 0 * gridSize + gridSize/2,  y: 4 * gridSize + gridSize/2 },
+    { x: 5 * gridSize + gridSize/2,  y: 4 * gridSize + gridSize/2 },
+    { x: 5 * gridSize + gridSize/2,  y: 2 * gridSize + gridSize/2 },
+    { x:10 * gridSize + gridSize/2,  y: 2 * gridSize + gridSize/2 },
+    { x:10 * gridSize + gridSize/2,  y: 6 * gridSize + gridSize/2 },
+    { x:14 * gridSize + gridSize/2,  y: 6 * gridSize + gridSize/2 },
+  ];
 
-    // Fill grid with path=1
-    rebuildGridFromPath();
+  rebuildGridFromPath();
 }
 
-export function updateMap(deltaTime) {
-    shiftTimer += deltaTime;
-
-    if (shiftTimer >= 20000) {
-        shiftTimer = 0;
-        // Only shift path + grid here
-        shiftGridAndPath();
-    }
-}
-
-export function getGrid() {
-    return mapGrid;
-}
-
+// getters
 export function getPath() {
-    return pathPoints;
+  return pathPoints;
+}
+export function getGrid() {
+  return mapGrid;
 }
 
-// ------------------------------------------------
-//   SHIFT EVERYTHING LEFT (USED BY game.js)
-// ------------------------------------------------
-export function shiftMapLeft(towers, enemies, occupiedCells) {
+// shift everything left: grid, path. (This does NOT move towers/enemies.)
+export function shiftGridLeft() {
+  // 1. shift mapGrid left by dropping first column and adding empty column at right
+  mapGrid.forEach(row => row.shift());
+  mapGrid.forEach(row => row.push(0));
 
-    // 1) Shift grid + path
-    shiftGridAndPath();
+  // 2. shift path points left (pixel coords)
+  pathPoints = pathPoints.map(p => ({ x: p.x - gridSize, y: p.y }))
+                         .filter(p => p.x >= -gridSize); // keep a little offscreen margin
 
-    // 2) Shift towers
-    towers.forEach((t, i) => {
-        t.x -= gridSize;
-        t.col -= 1;
-        if (t.col < 0) towers.splice(i, 1);
-    });
+  // 3. add a new path node on the right, connected to last
+  const last = pathPoints[pathPoints.length - 1] || { x: (cols-2)*gridSize + gridSize/2, y: 4*gridSize + gridSize/2 };
+  const lastRow = Math.floor(last.y / gridSize);
 
-    // 3) Shift enemies
-    enemies.forEach((e, i) => {
-        e.x -= gridSize;
-        if (e.x < 0) enemies.splice(i, 1);
-    });
+  // pick -1,0,+1 offset and clamp
+  let newRow = lastRow + (Math.floor(Math.random()*3) - 1);
+  newRow = Math.max(0, Math.min(rows-1, newRow));
 
-    // 4) Shift occupiedCells
-    const newOccupied = new Set();
-    occupiedCells.forEach(key => {
-        const [col, row] = key.split(",").map(Number);
-        if (col > 0) {
-            newOccupied.add(`${col - 1},${row}`);
-        }
-    });
-    occupiedCells.clear();
-    newOccupied.forEach(k => occupiedCells.add(k));
+  const newPoint = {
+    x: (cols - 1) * gridSize + gridSize/2,
+    y: newRow * gridSize + gridSize/2
+  };
+  pathPoints.push(newPoint);
+
+  // 4. rebuild grid path marking
+  rebuildGridFromPath();
+
+  console.log("[mapManager] shiftGridLeft -> newPoint:", newPoint, "path length:", pathPoints.length);
 }
 
-// ------------------------------------------------
-//   INTERNAL UTILITY FUNCTIONS
-// ------------------------------------------------
-
-function shiftGridAndPath() {
-
-    // --- A) Shift grid left ---
-    mapGrid.forEach(row => row.shift());   // remove leftmost column
-    mapGrid.forEach(row => row.push(0));   // add empty column on right
-
-    // --- B) Shift pathPoints left ---
-    pathPoints = pathPoints
-        .map(p => ({ x: p.x - gridSize, y: p.y }))
-        .filter(p => p.x >= 0);
-
-    // --- C) Generate new path node on the right ---
-    const last = pathPoints[pathPoints.length - 1];
-    const lastRow = Math.floor(last.y / gridSize);
-
-    // random row offset: -1, 0, +1
-    let newRow = lastRow + (Math.floor(Math.random() * 3) - 1);
-    newRow = Math.max(0, Math.min(rows - 1, newRow));
-
-    const newPoint = {
-        x: (cols - 1) * gridSize + gridSize / 2,
-        y: newRow * gridSize + gridSize / 2
-    };
-
-    pathPoints.push(newPoint);
-
-    // --- D) Update mapGrid from new pathPoints ---
-    rebuildGridFromPath();
-}
-
+// helper to regenerate mapGrid from pathPoints
 function rebuildGridFromPath() {
-    // reset grid
-    mapGrid.forEach(row => row.fill(0));
-
-    pathPoints.forEach(p => {
-        const row = Math.floor(p.y / gridSize);
-        const col = Math.floor(p.x / gridSize);
-        if (row >= 0 && row < rows && col >= 0 && col < cols) {
-            mapGrid[row][col] = 1;
-        }
-    });
+  for (let r = 0; r < rows; r++) mapGrid[r].fill(0);
+  pathPoints.forEach(p => {
+    const row = Math.floor(p.y / gridSize);
+    const col = Math.floor(p.x / gridSize);
+    if (row >= 0 && row < rows && col >= 0 && col < cols) {
+      mapGrid[row][col] = 1;
+    }
+  });
 }
