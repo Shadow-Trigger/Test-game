@@ -3,7 +3,7 @@ export function createNormalEnemy(path) {
     type: "normal",
     x: path[0].x,
     y: path[0].y,
-    speed: 1.75,
+    speed: 1.5,
     hp: 50,
     color: "red",
     pathIndex: 0
