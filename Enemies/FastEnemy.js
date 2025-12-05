@@ -3,7 +3,7 @@ export function createFastEnemy(path) {
     type: "fast",
     x: path[0].x,
     y: path[0].y,
-    speed: 5,
+    speed: 3.5,
     hp: 30,
     color: "purple",
     pathIndex: 0
